@@ -1,5 +1,7 @@
-use crate::{assambly::*, utils::{Enumerate, SetGetBytes}};
-
+use crate::{
+    assambly::*,
+    utils::{Enumerate, SetGetBytes},
+};
 
 pub fn pass0(words: Vec<String>) -> CodeTable {
     enum State {
@@ -150,13 +152,13 @@ pub fn pass1(code_table: CodeTable) -> SymbolTable {
 }
 pub fn pass2(code_table: CodeTable, symbol_table: SymbolTable) -> Result<Vec<u8>, AssamblyError> {
     let mut byte_code: Vec<Option<u8>> = vec![];
-    for (i,line) in code_table.0.enumerate() {
+    for (i, line) in code_table.0.enumerate() {
         let mut opcode = line.1.to_uppercase();
         if INSTRUCTION_NAMES.contains(&opcode.to_lowercase().as_str()) {
             byte_code.push(None);
             let opcode_index = byte_code.len() - 1;
             // println!("line: {:?}",line);
-            for arg in [line.2.clone(),line.3.clone()] {
+            for arg in [line.2.clone(), line.3.clone()] {
                 if let Some(mut arg) = arg {
                     if arg.starts_with("[") && arg.contains("+") {
                         opcode += "RA";
@@ -164,17 +166,26 @@ pub fn pass2(code_table: CodeTable, symbol_table: SymbolTable) -> Result<Vec<u8>
                         arg.remove(arg.len() - 1);
                         let parts = arg.split("+").collect::<Vec<&str>>();
                         if parts.len() != 2 {
-                            return Err(AssamblyError::new(Some(i), format!("invalid register address: {}", arg)));
+                            return Err(AssamblyError::new(
+                                Some(i),
+                                format!("invalid register address: {}", arg),
+                            ));
                         }
                         if let Some(reg_id) = REGISTER_NAMES.get_index_of(parts[0]) {
                             byte_code.push(Some(reg_id as u8))
                         } else {
-                            return Err(AssamblyError::new(Some(i), format!("invalid register: {}", parts[0])));
+                            return Err(AssamblyError::new(
+                                Some(i),
+                                format!("invalid register: {}", parts[0]),
+                            ));
                         }
                         let addres = string_to_usize(parts[1].to_string());
                         if addres.is_none() {
                             println!("invalid addres: {}", parts[1]);
-                            return Err(AssamblyError::new(Some(i), format!("invalid addres: {}", parts[1])));
+                            return Err(AssamblyError::new(
+                                Some(i),
+                                format!("invalid addres: {}", parts[1]),
+                            ));
                         }
                         let addres = addres.unwrap();
                         byte_code.push(Some(addres as u8));
@@ -182,12 +193,18 @@ pub fn pass2(code_table: CodeTable, symbol_table: SymbolTable) -> Result<Vec<u8>
                         opcode += "A";
                         let mut addr_string = arg.clone();
                         addr_string.remove(0);
-                        addr_string.remove(addr_string.len()-1);
+                        addr_string.remove(addr_string.len() - 1);
                         let addr = string_to_usize(addr_string.clone());
                         if addr.is_none() {
-                            return Err(AssamblyError::new(Some(i), format!("invalid addr: {}", addr_string)))
+                            return Err(AssamblyError::new(
+                                Some(i),
+                                format!("invalid addr: {}", addr_string),
+                            ));
                         } else if addr.unwrap() > u16::MAX as usize {
-                            return Err(AssamblyError::new(Some(i), format!("addres to larger must be valid u16: {}", addr_string)))
+                            return Err(AssamblyError::new(
+                                Some(i),
+                                format!("addres to larger must be valid u16: {}", addr_string),
+                            ));
                         }
                         let addr = addr.unwrap();
                         byte_code.push(Some(addr.get_byte(1) as u8));
@@ -203,8 +220,10 @@ pub fn pass2(code_table: CodeTable, symbol_table: SymbolTable) -> Result<Vec<u8>
                             } else {
                                 let label_value = symbol_table.get(arg.clone());
                                 if label_value.is_none() {
-                                    return Err(AssamblyError::new(Some(i), format!("label is undefind: {}", arg)));
-                                    
+                                    return Err(AssamblyError::new(
+                                        Some(i),
+                                        format!("label is undefind: {}", arg),
+                                    ));
                                 } else {
                                     let label_value = label_value.unwrap().unwrap();
                                     byte_code.push(Some(label_value as u8))
@@ -214,15 +233,21 @@ pub fn pass2(code_table: CodeTable, symbol_table: SymbolTable) -> Result<Vec<u8>
                     }
                 }
             }
-            
+
             if let Some(opcode_id) = get_opcode_id(opcode.clone()) {
                 // println!("found opcode: {}, opcode_id: {}", opcode, opcode_id);
                 byte_code[opcode_index] = Some(opcode_id as u8);
             } else {
-                return Err(AssamblyError::new(Some(i), format!("opcode: {} is invalid", opcode)));
+                return Err(AssamblyError::new(
+                    Some(i),
+                    format!("opcode: {} is invalid", opcode),
+                ));
             }
         } else {
-            return Err(AssamblyError::new(Some(i), format!("invalid instruction: {}", opcode)));
+            return Err(AssamblyError::new(
+                Some(i),
+                format!("invalid instruction: {}", opcode),
+            ));
         }
     }
     if byte_code.len()
@@ -237,7 +262,6 @@ pub fn pass2(code_table: CodeTable, symbol_table: SymbolTable) -> Result<Vec<u8>
     return Ok(byte_code.iter().filter_map(|x| *x).collect::<Vec<u8>>());
 }
 
-
 pub fn assamble(mut code: String) -> Result<Vec<u8>, AssamblyError> {
     code.make_ascii_lowercase();
     let words: Vec<String> = get_words(code);
@@ -246,7 +270,7 @@ pub fn assamble(mut code: String) -> Result<Vec<u8>, AssamblyError> {
     dbg!(&code_table);
     let symbol_table: SymbolTable = pass1(code_table.clone());
     let mut unresolved_labels = vec![];
-    
+
     for key in symbol_table.get_keys() {
         if symbol_table.get(key.clone()).unwrap().is_none() {
             println!("unresolved symbol: {}", key);
@@ -254,11 +278,14 @@ pub fn assamble(mut code: String) -> Result<Vec<u8>, AssamblyError> {
         }
     }
     if unresolved_labels.len() != 0 {
-        return Err(AssamblyError::new(None, format!("unresolved symbols {:?}",unresolved_labels)));
+        return Err(AssamblyError::new(
+            None,
+            format!("unresolved symbols {:?}", unresolved_labels),
+        ));
     }
-    println!("{:?}",symbol_table);
+    println!("{:?}", symbol_table);
     let byte_code = pass2(code_table, symbol_table);
-    
+
     // dbg!(&byte_code);
     return byte_code;
 }

@@ -1,7 +1,13 @@
-use luy8_cpu::{cpu::{CPU, memory::{DataBus, RAM}}, RAM_BYTES, load_bin_file, assambly::{assamble, dissassamble}, store_bin_file, utils::Enumerate};
-
-
-
+use luy8_cpu::{
+    assambly::{assamble, dissassamble},
+    cpu::{
+        memory::{DataBus, RAM},
+        CPU,
+    },
+    load_bin_file, store_bin_file,
+    utils::Enumerate,
+    RAM_BYTES,
+};
 
 fn main() {
     println!("Hello, world!");
@@ -23,7 +29,6 @@ fn _test_cpu() {
     for i in 0..data.len() {
         let byte = data[i];
         cpu.data_bus.write_byte(i, byte);
-        
     }
     for _ in 0..6 {
         cpu.clock();
@@ -50,7 +55,7 @@ fn _test_assamble() {
         }
     } else {
         let error = byte_code.unwrap_err();
-        println!("assambling error:\n{}",error);
+        println!("assambling error:\n{}", error);
     }
 }
 fn _test_dissassable() {
@@ -67,7 +72,13 @@ fn _test_dissassable() {
         } else if line.3.is_none() {
             println!("[{}] {} {}", i, line.1, line.2.clone().unwrap());
         } else {
-            println!("[{}] {} {}, {}", i, line.1, line.2.clone().unwrap(), line.3.clone().unwrap());
+            println!(
+                "[{}] {} {}, {}",
+                i,
+                line.1,
+                line.2.clone().unwrap(),
+                line.3.clone().unwrap()
+            );
         }
     }
 }

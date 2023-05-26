@@ -1,10 +1,9 @@
 mod assamble;
 mod dissasamble;
 
-
 type Line = (Option<String>, String, Option<String>, Option<String>);
 type SymbolTable = Dict<String, Option<usize>>;
-use crate::{cpu::REGISTER_NAMES};
+use crate::cpu::REGISTER_NAMES;
 pub const INSTRUCTION_NAMES: [&str; 21] = [
     "nop", "add", "sub", "and", "or", "xor", "not", "mov", "str", "pop", "push", "cmp", "jmp",
     "je", "jz", "jne", "jmr", "jls", "int", "call", "ret",
@@ -117,7 +116,6 @@ where
     }
 }
 impl<K, V> Debug for Dict<K, V>
-
 where
     K: std::cmp::PartialOrd + std::fmt::Debug + std::clone::Clone,
     V: std::clone::Clone + std::fmt::Debug,
@@ -298,24 +296,17 @@ pub struct AssamblyError {
 }
 impl AssamblyError {
     pub fn new(line: Option<usize>, msg: String) -> Self {
-        Self {
-            msg,
-            line,
-        }
+        Self { msg, line }
     }
-
 }
 impl Display for AssamblyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.line {
             Some(line) => write!(f, "[{}] {}", line, self.msg),
-            None => write!(f, "{}", self.msg)
+            None => write!(f, "{}", self.msg),
         }
-        
     }
 }
-
-
 
 pub fn assamble(code: String) -> Result<Vec<u8>, AssamblyError> {
     assamble::assamble(code)
